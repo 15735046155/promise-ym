@@ -36,7 +36,7 @@ class MyPromise {
         this.reason = reason
         // 失败回调是否存在，存在就调用
         // this.failCallback && this.failCallback(this.reason)
-        while(this.failCallback.length) this.failCallback.shift()(reason)
+        while(this.failCallback.length) this.failCallback.shift()(this.reason)
     }
     then(successCallback, failCallback){
         // 链式调用需要返回promise
