@@ -14,7 +14,7 @@
  * 8. then方法是可以被链式调用的，下一个then的值是上一个then方法的返回值。想要实现链式调用，就要返回promise，因为then是在promise上的
  * 9. then方法链式调用的返回值可以是普通值，可以是promise, 但是返回值不能是自己，否则会报错 TypeError: Chaining cycle detected for promise #<Promise>
  * 10. 捕获错误，1.执行器执行时报错，2.then方法中回调函数执行错误，要在下一个then的回调函数中捕获到。
- * 11. then方法有两个回调函数（都为可选参数）
+ * 11. then方法有两个回调函数（都为可选参数）promise.then().then().then(value => conmsole.log(value)) 相当于 promise.then(value => value).then(value => value).then(value => console.log(value))
  */
 
 
@@ -42,6 +42,7 @@ const MyPromise = require('./myPromise');
 //     reject('shibai')
 // })
 // promise.then().then().then(value => console.log(value)) // 124
+// 相当于 promise.then(value => value).then(value =. value).then(value => console.log(value))
 
 
 
