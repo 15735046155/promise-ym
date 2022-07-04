@@ -3,7 +3,11 @@ const FULFILLED = 'fulfilled'; //成功
 const REJECTED = 'rejected'; //失败
 class MyPromise {
     constructor(executor){
-        executor(this.resolve, this.reject)
+        try {
+            executor(this.resolve, this.reject)
+        } catch (error) {
+            this.reject(error)
+        }
     }
     // promise状态
     status = PENDING
@@ -25,7 +29,8 @@ class MyPromise {
         this.value = value
         // 成功回调是否存在，存在调用
         // this.successCallback && this.successCallback(this.value)
-        while(this.successCallback.length) this.successCallback.shift()(this.value) // 异步情况下存储多个，一个一个调用
+        // while(this.successCallback.length) this.successCallback.shift()(this.value) // 异步情况下存储多个，一个一个调用
+        while(this.successCallback.length) this.successCallback.shift()() // 异步情况下存储多个，一个一个调用
     }
     reject = (reason) => {
         // 如果状态不是等待，阻止继续向下执行，也就是状态一旦确定就不允许再次改变
@@ -36,28 +41,49 @@ class MyPromise {
         this.reason = reason
         // 失败回调是否存在，存在就调用
         // this.failCallback && this.failCallback(this.reason)
-        while(this.failCallback.length) this.failCallback.shift()(this.reason)
+        // while(this.failCallback.length) this.failCallback.shift()(this.reason)
+        while(this.failCallback.length) this.failCallback.shift()()
     }
     then(successCallback, failCallback){
         // 链式调用需要返回promise
         let promise2 = new MyPromise((resolve, reject) => {
+            // then方法不传递参数时
+            successCallback = successCallback ? successCallback : value => value
+            failCallback = failCallback ? failCallback : reason => reason
             // 判断状态
             if (this.status === FULFILLED) {
                 // successCallback(this.value)
                 
                 setTimeout(() => { // 由于promise2拿不到，所以需要变成异步代码，等promise2初始化完成才可以拿到
-                    let x = successCallback(this.value) // x就是传递给下一个then的的值
-                    // resolve(x)
-                    // 判断x的值的类型
-                    // 如果是普通值的话直接调用resolve（x）
-                    // 如果是一个promise的话，
-                    // 需要判断这个promise的回调结果 调用(resolve, reject)
-                    resolvePromise(promise2, x, resolve, reject)
+                    try {
+                        let x = successCallback(this.value) // x就是传递给下一个then的的值
+                        // resolve(x)
+                        // 判断x的值的类型
+                        // 如果是普通值的话直接调用resolve（x）
+                        // 如果是一个promise的话，
+                        // 需要判断这个promise的回调结果 调用(resolve, reject)
+                        resolvePromise(promise2, x, resolve, reject)
+                    } catch (error) {
+                        reject(error)
+                    }
                 }, 0);
             } else if (this.status === REJECTED){
                 // failCallback(this.reason)
-                let y = failCallback(this.reason)
-                reject(y)
+                // let y = failCallback(this.reason)
+                // reject(y)
+                setTimeout(() => { // 由于promise2拿不到，所以需要变成异步代码，等promise2初始化完成才可以拿到
+                    try {
+                        let y = failCallback(this.reason) // x就是传递给下一个then的的值
+                        // resolve(x)
+                        // 判断x的值的类型
+                        // 如果是普通值的话直接调用resolve（x）
+                        // 如果是一个promise的话，
+                        // 需要判断这个promise的回调结果 调用(resolve, reject)
+                        resolvePromise(promise2, y, resolve, reject)
+                    } catch (error) {
+                        reject(error)
+                    }
+                }, 0);
             } else {
                 // 等待
                 
@@ -66,8 +92,40 @@ class MyPromise {
                 // this.successCallback = successCallback
                 // this.failCallback = failCallback
                 // 调用多次的情况下
-                this.successCallback.push(successCallback)
-                this.failCallback.push(failCallback)
+                // this.successCallback.push(successCallback)
+                // this.failCallback.push(failCallback)
+
+                // 异步情况下
+                this.successCallback.push(() => {
+                    setTimeout(() => { // 由于promise2拿不到，所以需要变成异步代码，等promise2初始化完成才可以拿到
+                        try {
+                            let x = successCallback(this.value) // x就是传递给下一个then的的值
+                            // resolve(x)
+                            // 判断x的值的类型
+                            // 如果是普通值的话直接调用resolve（x）
+                            // 如果是一个promise的话，
+                            // 需要判断这个promise的回调结果 调用(resolve, reject)
+                            resolvePromise(promise2, x, resolve, reject)
+                        } catch (error) {
+                            reject(error)
+                        }
+                    }, 0);
+                })
+                this.failCallback.push(() => {
+                    setTimeout(() => { // 由于promise2拿不到，所以需要变成异步代码，等promise2初始化完成才可以拿到
+                        try {
+                            let y = failCallback(this.reason) // x就是传递给下一个then的的值
+                            // resolve(x)
+                            // 判断x的值的类型
+                            // 如果是普通值的话直接调用resolve（x）
+                            // 如果是一个promise的话，
+                            // 需要判断这个promise的回调结果 调用(resolve, reject)
+                            resolvePromise(promise2, y, resolve, reject)
+                        } catch (error) {
+                            reject(error)
+                        }
+                    }, 0);
+                })
             }
         })
         return promise2

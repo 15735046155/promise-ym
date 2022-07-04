@@ -13,6 +13,8 @@
  * 7. then方法是可以掉用多次的，同步情况下直接执行成功回调函数，异步的情况下，需要把每一个回调函数存储下等异步执行完成后在逐个执行
  * 8. then方法是可以被链式调用的，下一个then的值是上一个then方法的返回值。想要实现链式调用，就要返回promise，因为then是在promise上的
  * 9. then方法链式调用的返回值可以是普通值，可以是promise, 但是返回值不能是自己，否则会报错 TypeError: Chaining cycle detected for promise #<Promise>
+ * 10. 捕获错误，1.执行器执行时报错，2.then方法中回调函数执行错误，要在下一个then的回调函数中捕获到。
+ * 11. then方法有两个回调函数（都为可选参数）
  */
 
 
@@ -32,35 +34,44 @@ function ohter() {
     })
 }
 
-// // 测试
+// 测试
 const MyPromise = require('./myPromise');
+// 事例11
+// let promise = new MyPromise((resolve, reject) => {
+//     // resolve('124')
+//     reject('shibai')
+// })
+// promise.then().then().then(value => console.log(value)) // 124
 
-let promise = new MyPromise((resolve, reject) => {
-    // setTimeout(() => {
-    //     // resolve('成功......');
-    //     // reject('失败11111');
-    // }, 2000)
-    
-    resolve('成功');
-    // reject('失败');
-})
 
-let p1 = promise.then((value) => {
-    console.log(value)
-    return p1
-})
-p1.then(value => {
-    console.log(value)
-}, err => 
-    console.log(err)
-)
+
+// let promise = new MyPromise((resolve, reject) => {
+//     setTimeout(() => {
+//         // resolve('成功1......');
+//         reject('失败11111');
+//     }, 2000)
+//     // throw new Error('zhixingq cuowu')
+//     // resolve('成功');
+//     // reject('失败');
+// })
+
+// let p1 = promise.then((value) => {
+//     console.log(value)
+//     return p1
+// })
+// p1.then(value => {
+//     console.log(value)
+// }, err => 
+//     console.log(err)
+// )
 // promise.then((value) => {
 //     console.log(value)
+//     // throw new Error('then cuowu')
+//     return 122
 // }, (reason) => {
 //     console.log(reason)
-// })
-// promise.then((value) => {
-//     console.log(value)
+// }).then((value) => {
+//     console.log(value, 'ccc')
 // }, (reason) => {
 //     console.log(reason)
 // })
